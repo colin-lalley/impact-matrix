@@ -51,7 +51,6 @@ html_code = f"""
     font-family: 'DM Sans', sans-serif;
     background: #f8f7f4;
     padding: 16px;
-    min-height: 100vh;
   }}
 
   .layout {{
@@ -88,14 +87,11 @@ html_code = f"""
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #1a1a2e;
-    writing-mode: vertical-rl;
+    writing-mode: vertical-lr;
     transform: rotate(180deg);
     white-space: nowrap;
     width: 20px;
-  }}
-
-  .axis-label-side.right {{
-    transform: rotate(0deg);
+    text-align: center;
   }}
 
   #matrix {{
@@ -470,13 +466,25 @@ function renderDots() {{
 
 updateLegend();
 renderDots();
+
+// Responsive height: measure content and tell Streamlit how tall to make the iframe
+function reportHeight() {{
+  const h = document.body.scrollHeight;
+  window.parent.postMessage({{ type: 'streamlit:setFrameHeight', height: h }}, '*');
+}}
+
+// Report after initial render, and on every resize
+reportHeight();
+const ro = new ResizeObserver(() => reportHeight());
+ro.observe(document.body);
+window.addEventListener('resize', reportHeight);
 </script>
 </body>
 </html>
 """
 
-# Render the interactive matrix
-components.html(html_code, height=580, scrolling=False)
+# Render the interactive matrix — height is managed responsively via postMessage
+components.html(html_code, height=900, scrolling=False)
 
 # Show a clear/reset option if there are initiatives
 if st.session_state.initiatives:
